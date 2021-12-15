@@ -1,54 +1,28 @@
 <template>
-  <h1>VMail Inbox</h1>\
-  <table class="mail-table">
-    <tbody>
-      <tr 
-        v-for="email in unarchivedEmails"
-        :key="email.id"
-        :class="[email.read ? 'read' : '', 'clickable']"
-        @click="email.read = true"
-      >
-        <td>
-          <input type="checkbox" />
-        </td>
-        <td> 
-          {{ email.from }}
-        </td>
-        <td> 
-          <p><strong>{{ email.subject }}</strong> - {{ email.body }} </p>
-        </td>
-        <td class="date"> {{ formatDate(email.sentAt) }}</td>
-        <td>
-          <button @click="email.archived = true">Archive</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <h1>VMail Inbox</h1>
+
+  <Suspense>
+    <template #default>
+      <MailTable  />
+    </template>
+    <template #fallback>
+      Loading...
+    </template>
+  </Suspense>
+  
 </template>
 
 <script>
-import { format } from 'date-fns';
+import MailTable from './components/MailTable.vue'
+import { ref } from 'vue'
 export default {
   name: 'App',
-  methods: {
-    formatDate(date) {
-      return format(new Date(date), 'MMM do yyyy')
-    }
+  components: {
+    MailTable
   },
-  computed: {
-    sortedEmails() {
-      return this.emails.sort((e1, e2) => {
-        return e1.sentAt < e2.sentAt ? 1 : - 1   
-      })
-    },
-    unarchivedEmails() {
-      return this.sortedEmails.filter(email => !email.archived)
-    }
-  },
-  data() {
+  setup() {
     return {
-      format,
-      "emails": [
+      "emails": ref([
         {
           "id": 1,
           "from": "team@vuemastery.com",
@@ -85,7 +59,7 @@ export default {
           "archived": true,
           "read": true
         }
-      ]
+      ])
     }
   }
 };
