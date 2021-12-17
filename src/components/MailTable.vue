@@ -18,12 +18,14 @@
         </td>
         <td class="date"> {{ format(new Date(email.sentAt), 'MMM do yyyy') }}</td>
         <td>
-          <button @click="archiveEmail(email)">Archive</button>
+          <button @click.stop="archiveEmail(email)">Archive</button>
         </td>
       </tr>
     </tbody>
   </table>
-  <MailView v-if="openedEmail" :email="openedEmail" />
+  <ModalView v-if="openedEmail.id" @closeModal="openedEmail.id = null">
+    <MailView :email="openedEmail" />
+  </ModalView>
 </template>
 
 <script>
@@ -32,10 +34,12 @@
   import axios from 'axios'
 
   import MailView from './MailView';
+  import ModalView from './ModalView';
 
   export default {
     components: {
-      MailView
+      MailView,
+      ModalView
     },
     async setup() {
       let emails = ref([])
