@@ -23,15 +23,21 @@
       </tr>
     </tbody>
   </table>
-  <ModalView v-if="openedEmail.id" @closeModal="openedEmail.id = null">
-    <MailView :email="openedEmail" />
+  <ModalView v-if="openedEmail.id" @closeModal="onModalClose">
+    <MailView 
+      @toggle-read="toggleRead" 
+      @toggle-archive="toggleArchive" 
+      :email="openedEmail" 
+      
+    />
   </ModalView>
 </template>
 
 <script>
   import { format } from 'date-fns';
   import { ref, computed, reactive } from 'vue';
-  import axios from 'axios'
+  import axios from 'axios';
+  import { updateEmail, fetchEmails, toggleEmailProperty } from '../composables/email';
 
   import MailView from './MailView';
   import ModalView from './ModalView';
@@ -52,11 +58,12 @@
         archived: false,
         read: true
       })
-      let response = await axios.get('http://localhost:3000/emails');
-      emails.value = response.data
+
+      emails.value = await fetchEmails();
 
       const openEmail = async (email) => {
-        email.read = true;
+        email.read = true
+        // this assigns openedEmail variable to the email variable and makes it reactive
         openedEmail = Object.assign(openedEmail, email);
         await updateEmail(email);
       }
@@ -66,9 +73,14 @@
         await updateEmail(email);
       }
 
-      const updateEmail = async (email) => {
-        await axios.put(`http://localhost:3000/emails/${email.id}`, email)
+      const onModalClose = async () => {
+        await updateEmail(openedEmail);
+        openedEmail.id = null
+        emails.value = await fetchEmails()
       }
+
+      const toggleRead = async () =>  await toggleEmailProperty({ emails, email: openedEmail, property: 'read' })
+      const toggleArchive = async () => await toggleEmailProperty({ emails, email: openedEmail, property: 'archive' })
 
       const sortedEmails = computed(() => {
          return emails.value.sort((e1, e2) => {
@@ -88,6 +100,9 @@
           unarchivedEmails,
           updateEmail,
           openedEmail,
+          toggleRead,
+          onModalClose,
+          toggleArchive,
         } 
     },
   }
