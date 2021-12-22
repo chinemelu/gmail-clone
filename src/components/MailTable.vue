@@ -23,12 +23,10 @@
       </tr>
     </tbody>
   </table>
-  <ModalView v-if="openedEmail.id" @closeModal="onModalClose">
+  <ModalView v-if="openedEmail" @closeModal="onModalClose">
     <MailView 
-      @toggle-read="toggleRead" 
-      @toggle-archive="toggleArchive" 
+      @changeEmail="changeEmail"
       :email="openedEmail" 
-      
     />
   </ModalView>
 </template>
@@ -49,23 +47,23 @@
     },
     async setup() {
       let emails = ref([])
-      let openedEmail = reactive({
-        id : null,
-        from: "",
-        subject: "",
-        body: "",
-        sentAt: new Date(),
-        archived: false,
-        read: true
-      })
+      let openedEmail = ref(null)
 
       emails.value = await fetchEmails();
 
       const openEmail = async (email) => {
-        email.read = true
-        // this assigns openedEmail variable to the email variable and makes it reactive
-        openedEmail = Object.assign(openedEmail, email);
-        await updateEmail(email);
+        // if there is an email when the navigation buttons or shortcut keys for the navigation buttons are pressed,
+        // let the email be read and become the openedEmail
+        if (email) {
+          email.read = true
+          // this assigns openedEmail variable to the email variable and makes it reactive
+          // equivalent of this.openedEmail = this.email
+          openedEmail.value =  email
+          await updateEmail(email);
+          return
+        }
+        // else close the modal
+        openedEmail.value = null
       }
 
       const archiveEmail = async (email) => {
@@ -74,13 +72,56 @@
       }
 
       const onModalClose = async () => {
-        await updateEmail(openedEmail);
-        openedEmail.id = null
+        await updateEmail(openedEmail.value);
+        openedEmail.value = null
         emails.value = await fetchEmails()
       }
 
-      const toggleRead = async () =>  await toggleEmailProperty({ emails, email: openedEmail, property: 'read' })
-      const toggleArchive = async () => await toggleEmailProperty({ emails, email: openedEmail, property: 'archive' })
+      const changeEmail = ({ archiveEmail, saveEmail, readEmail, closeModal, changeIndex }) => {
+
+        /** Example equivalent of this.email = this.openedEmail
+        in this example, openedEmail was a reactive;
+        let openedEmail = reactive({
+          id: null,
+          from: "",
+          subject": "",
+          "body": "",
+          "sentAt": new Date(),
+          "archived": false,
+          "read": false
+        })
+        let email = {}
+        // openedEmail is the target and email is an empty object with properties that will be applied to openedEmail
+        // openedEmail will be returned
+        email = Object.assign(openedEmail, email); // works
+        debugger;
+
+        **/
+
+        // second example equivalent of this.email = this.openedEmail
+
+        const email = ref({})
+
+        email.value = openedEmail.value
+
+        if (readEmail) { email.value.read = !email.value.read }
+
+        if (archiveEmail) { email.value.archived = !email.value.archived }
+
+        if (saveEmail) { updateEmail(email.value) }
+
+        if (closeModal) { email.value = null }
+
+        if (changeIndex) {
+          // debugger;
+          const currentEmailIndex = unarchivedEmails.value.indexOf(openedEmail.value);
+          let newEmail = emails.value[currentEmailIndex + changeIndex];
+          openEmail(newEmail);
+        }
+      }
+
+      // const toggleRead = async () =>  await toggleEmailProperty({ emails, email: openedEmail, property: 'read' })
+      // const toggleArchive = async () => await toggleEmailProperty({ emails, email: openedEmail, property: 'archive' })
 
       const sortedEmails = computed(() => {
          return emails.value.sort((e1, e2) => {
@@ -91,18 +132,23 @@
         return sortedEmails.value.filter(email => !email.archived)
       })
 
+      // const changeEmail = ({  }) => {
+      //   emails.value = await fetchEmails();
+      //   await updateEmail(email);
+      // }
+
       return {
           format,
           emails,
           openEmail,
-          sortedEmails,
           archiveEmail,
           unarchivedEmails,
           updateEmail,
           openedEmail,
-          toggleRead,
+          // toggleRead,
           onModalClose,
-          toggleArchive,
+          // toggleArchive,
+          changeEmail
         } 
     },
   }
