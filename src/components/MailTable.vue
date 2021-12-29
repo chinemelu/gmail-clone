@@ -1,4 +1,5 @@
 <template>
+  <h1>{{emailSelection.emails.size}} emails selected</h1>
   <table class="mail-table">
     <tbody>
       <tr 
@@ -8,7 +9,11 @@
         @click="openEmail(email)"
       >
         <td>
-          <input type="checkbox" />
+          <input 
+            type="checkbox" 
+            @click.stop="emailSelection.toggle(email)"
+            :selected="emailSelection.emails.has(email)"
+          />
         </td>
         <td> 
           {{ email.from }}
@@ -72,13 +77,12 @@
       }
 
       const onModalClose = async () => {
-        await updateEmail(openedEmail.value);
+        // await updateEmail(openedEmail.value);
         openedEmail.value = null
-        emails.value = await fetchEmails()
+        // emails.value = await fetchEmails()
       }
 
       const changeEmail = ({ archiveEmail, saveEmail, readEmail, closeModal, changeIndex }) => {
-
         /** Example equivalent of this.email = this.openedEmail
         in this example, openedEmail was a reactive;
         let openedEmail = reactive({
@@ -120,6 +124,19 @@
         }
       }
 
+      let selected = reactive(new Set())
+      let emailSelection = {
+        emails: selected,
+        toggle(email) {
+          console.log('selected', selected, emailSelection.emails.has(email), email)
+          if (emailSelection.emails.has(email)) {
+            emailSelection.emails.delete(email)
+          } else {
+            emailSelection.emails.add(email)
+          }
+        }
+      }
+
       // const toggleRead = async () =>  await toggleEmailProperty({ emails, email: openedEmail, property: 'read' })
       // const toggleArchive = async () => await toggleEmailProperty({ emails, email: openedEmail, property: 'archive' })
 
@@ -138,18 +155,17 @@
       // }
 
       return {
-          format,
-          emails,
-          openEmail,
-          archiveEmail,
-          unarchivedEmails,
-          updateEmail,
-          openedEmail,
-          // toggleRead,
-          onModalClose,
-          // toggleArchive,
-          changeEmail
-        } 
+        format,
+        emails,
+        openEmail,
+        archiveEmail,
+        unarchivedEmails,
+        updateEmail,
+        openedEmail,
+        onModalClose,
+        emailSelection,
+        changeEmail
+      } 
     },
   }
 </script>
