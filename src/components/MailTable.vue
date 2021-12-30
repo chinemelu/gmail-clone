@@ -1,5 +1,5 @@
 <template>
-  <h1>{{emailSelection.emails.size}} emails selected</h1>
+  <BulkActionBar  :emails="unarchivedEmails"/>
   <table class="mail-table">
     <tbody>
       <tr 
@@ -12,7 +12,7 @@
           <input 
             type="checkbox" 
             @click.stop="emailSelection.toggle(email)"
-            :selected="emailSelection.emails.has(email)"
+            :checked="emailSelection.emails.has(email)"
           />
         </td>
         <td> 
@@ -41,6 +41,8 @@
   import { ref, computed, reactive } from 'vue';
   import axios from 'axios';
   import { updateEmail, fetchEmails, toggleEmailProperty } from '../composables/email';
+  import { useEmailSelection } from '../composables/use-email-selection';
+  import BulkActionBar from '../components/BulkActionBar.vue'
 
   import MailView from './MailView';
   import ModalView from './ModalView';
@@ -48,7 +50,8 @@
   export default {
     components: {
       MailView,
-      ModalView
+      ModalView,
+      BulkActionBar
     },
     async setup() {
       let emails = ref([])
@@ -124,18 +127,7 @@
         }
       }
 
-      let selected = reactive(new Set())
-      let emailSelection = {
-        emails: selected,
-        toggle(email) {
-          console.log('selected', selected, emailSelection.emails.has(email), email)
-          if (emailSelection.emails.has(email)) {
-            emailSelection.emails.delete(email)
-          } else {
-            emailSelection.emails.add(email)
-          }
-        }
-      }
+      
 
       // const toggleRead = async () =>  await toggleEmailProperty({ emails, email: openedEmail, property: 'read' })
       // const toggleArchive = async () => await toggleEmailProperty({ emails, email: openedEmail, property: 'archive' })
@@ -163,7 +155,7 @@
         updateEmail,
         openedEmail,
         onModalClose,
-        emailSelection,
+        emailSelection: useEmailSelection(),
         changeEmail
       } 
     },
