@@ -1,11 +1,18 @@
 <template>
-  <div>
-    <input 
-      type="checkbox" 
-      :checked="allEmailsSelected"
-      :class="[someEmailsSelected ? 'partial-check' : '']"
-      @click="handleBulkAction"
-    />
+  <div class="bulk-action-bar">
+    <span class="checkbox">
+      <input 
+        type="checkbox" 
+        :checked="allEmailsSelected"
+        :class="[someEmailsSelected ? 'partial-check' : '']"
+        @click="handleBulkAction"
+      />
+    </span>
+    <span class="buttons">
+      <button>Mark Read</button>
+      <button>Mark Unread</button>
+      <button>Archive</button>
+    </span>
   </div>
 </template>
 
