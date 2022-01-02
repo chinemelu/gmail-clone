@@ -1,9 +1,17 @@
 <template>
-  <BulkActionBar  :emails="unarchivedEmails"/>
+  <button
+    @click="selectInboxEmails"
+    :disabled="selectedScreen === 'inbox'"
+  >Inbox</button>
+  <button
+    @click="selectArchivedEmails"
+    :disabled="selectedScreen === 'archive'"
+  >Archived</button>
+  <BulkActionBar  :emails="filteredEmails"/>
   <table class="mail-table">
     <tbody>
       <tr 
-        v-for="email in unarchivedEmails"
+        v-for="email in filteredEmails"
         :key="email.id"
         :class="[email.read ? 'read' : '', 'clickable']"
         @click="openEmail(email)"
@@ -38,7 +46,7 @@
 
 <script>
   import { format } from 'date-fns';
-  import { ref, computed, reactive } from 'vue';
+  import { ref, computed } from 'vue';
   import axios from 'axios';
   import { updateEmail, fetchEmails, toggleEmailProperty } from '../composables/email';
   import { useEmailSelection } from '../composables/use-email-selection';
@@ -54,8 +62,13 @@
       BulkActionBar
     },
     async setup() {
-      let emails = ref([])
-      let openedEmail = ref(null)
+      let emails = ref([]);
+      
+      let openedEmail = ref(null);
+
+      let selectedScreen = ref('inbox');
+      
+      const useEmailSelection = useEmailSelection()
 
       emails.value = await fetchEmails();
 
@@ -121,7 +134,7 @@
 
         if (changeIndex) {
           // debugger;
-          const currentEmailIndex = unarchivedEmails.value.indexOf(openedEmail.value);
+          const currentEmailIndex = filteredEmails.value.indexOf(openedEmail.value);
           let newEmail = emails.value[currentEmailIndex + changeIndex];
           openEmail(newEmail);
         }
@@ -137,9 +150,20 @@
           return e1.sentAt < e2.sentAt ? 1 : - 1   
         })
       })
-      const unarchivedEmails = computed(() => {
-        return sortedEmails.value.filter(email => !email.archived)
+      const filteredEmails = computed(() => {
+        if (selectedScreen.value === 'inbox') {
+          return sortedEmails.value.filter(email => !email.archived)
+        }
+        return  sortedEmails.value.filter(email => email.archived)
       })
+
+      const selectInboxEmails = () => {
+        selectedScreen.value = 'inbox';
+        useEmailSelection
+      }
+      const selectArchivedEmails = () => {
+        selectedScreen.value = 'archive'
+      }
 
       // const changeEmail = ({  }) => {
       //   emails.value = await fetchEmails();
@@ -151,12 +175,15 @@
         emails,
         openEmail,
         archiveEmail,
-        unarchivedEmails,
+        filteredEmails,
         updateEmail,
         openedEmail,
         onModalClose,
-        emailSelection: useEmailSelection(),
-        changeEmail
+        emailSelection,
+        changeEmail,
+        selectedScreen,
+        selectInboxEmails,
+        selectArchivedEmails
       } 
     },
   }

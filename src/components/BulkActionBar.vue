@@ -9,9 +9,18 @@
       />
     </span>
     <span class="buttons">
-      <button>Mark Read</button>
-      <button>Mark Unread</button>
-      <button>Archive</button>
+      <button 
+        @click="handleMarkRead"
+        :disabled="isMarkReadButtonDisabled"
+      >Mark Read</button>
+      <button
+        @click="handleMarkUnread"
+        :disabled="isMarkUnreadButtonDisabled"
+      >Mark Unread</button>
+      <button
+        @click="handleMarkArchive"
+        :disabled="isMarkArchiveButtonDisabled"
+      >Archive</button>
     </span>
   </div>
 </template>
@@ -35,10 +44,47 @@
         }
       }
 
+      const handleMarkRead = () => {
+        emailSelection.markRead()
+      }
+      const handleMarkUnread = () => {
+        emailSelection.markUnread()
+      }
+      const handleMarkArchive= () => {
+        emailSelection.markArchive()
+      }
+
+      const thereIsNoSelectedEmail = computed(() => {
+        return !emailSelection.emails.size
+      })
+      
+      // convert the set to an array with Array.from
+      const isEverySelectedEmailRead = computed(() => Array.from(emailSelection.emails).every((email) => {
+        return email.read
+      }))
+      const isEverySelectedEmailUnread = computed(() => Array.from(emailSelection.emails).every((email) => {
+        return !email.read
+      }))
+      const isMarkReadButtonDisabled = computed(() => {
+        return thereIsNoSelectedEmail.value || isEverySelectedEmailRead.value
+      })
+      const isMarkUnreadButtonDisabled = computed(() => {
+        return thereIsNoSelectedEmail.value || isEverySelectedEmailUnread.value
+      })
+      const isMarkArchiveButtonDisabled = computed(() => {
+        return thereIsNoSelectedEmail.value;
+      })
+
       return {
         allEmailsSelected,
         someEmailsSelected, 
-        handleBulkAction
+        handleBulkAction,
+        handleMarkRead,
+        handleMarkUnread,
+        handleMarkArchive,
+        isMarkReadButtonDisabled,
+        isMarkUnreadButtonDisabled,
+        isMarkArchiveButtonDisabled
       }
     },
     props: {
