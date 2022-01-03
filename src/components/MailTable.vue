@@ -1,10 +1,10 @@
 <template>
   <button
-    @click="selectInboxEmails"
+    @click="selectScreen('inbox')"
     :disabled="selectedScreen === 'inbox'"
   >Inbox</button>
   <button
-    @click="selectArchivedEmails"
+    @click="selectScreen('archive')"
     :disabled="selectedScreen === 'archive'"
   >Archived</button>
   <BulkActionBar  :emails="filteredEmails"/>
@@ -67,9 +67,9 @@
       let openedEmail = ref(null);
 
       let selectedScreen = ref('inbox');
-      
-      const useEmailSelection = useEmailSelection()
 
+      const emailSelection = useEmailSelection();
+      
       emails.value = await fetchEmails();
 
       const openEmail = async (email) => {
@@ -157,12 +157,9 @@
         return  sortedEmails.value.filter(email => email.archived)
       })
 
-      const selectInboxEmails = () => {
-        selectedScreen.value = 'inbox';
-        useEmailSelection
-      }
-      const selectArchivedEmails = () => {
-        selectedScreen.value = 'archive'
+      const selectScreen = (newScreen) => {
+        selectedScreen.value = newScreen
+        emailSelection.clear();
       }
 
       // const changeEmail = ({  }) => {
@@ -179,11 +176,10 @@
         updateEmail,
         openedEmail,
         onModalClose,
-        emailSelection,
         changeEmail,
         selectedScreen,
-        selectInboxEmails,
-        selectArchivedEmails
+        emailSelection,
+        selectScreen
       } 
     },
   }

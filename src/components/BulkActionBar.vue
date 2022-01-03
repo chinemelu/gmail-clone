@@ -31,10 +31,12 @@
   export default {
     setup(props) {
       const emailSelection = useEmailSelection()
-      const numberOfEmails = props.emails.length;
+      const numberOfEmails = computed(() => props.emails.length);
       const numberOfEmailsSelected = computed(() => emailSelection.emails.size);
-      const allEmailsSelected = computed(() => numberOfEmails === numberOfEmailsSelected.value)
-      const someEmailsSelected = computed(() => numberOfEmailsSelected.value > 0 && numberOfEmailsSelected.value < numberOfEmails)
+      const allEmailsSelected = computed(() => {
+        return numberOfEmails.value === numberOfEmailsSelected.value
+      })
+      const someEmailsSelected = computed(() => numberOfEmailsSelected.value > 0 && numberOfEmailsSelected.value < numberOfEmails.value)
 
       const handleBulkAction = () => {
         if (allEmailsSelected.value) {
